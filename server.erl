@@ -39,13 +39,14 @@ countServers(ServerList) ->
         ServerList
      ).
 
-server(LS) ->
-    case gen_tcp:accept(LS) of
-        {ok,S} ->
-            loop(S),
-            server(LS);
+server(ListenSock) ->
+    io:format("Starting Server: Pid ~p~n", [self()]),
+    case gen_tcp:accept(ListenSock) of
+        {ok, Socket} ->
+            loop(Socket),
+            server(ListenSock);
         Other ->
-            io:format("accept returned ~w - goodbye!~n",[Other]),
+            io:format("accept returned ~w - goodbye!~n", [Other]),
             ok
     end.
 
