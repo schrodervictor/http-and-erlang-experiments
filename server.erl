@@ -27,6 +27,18 @@ start_servers(Num, ListenSock, ServerList, _) ->
     NewPid = spawn(fun() -> server(ListenSock) end),
     start_servers(Num, ListenSock, [NewPid|ServerList], countServers(ServerList)).
 
+countServers(ServerList) ->
+    lists:foldl(
+        fun(ServerPid, Acc) ->
+            case process_info(ServerPid) of
+                undefined -> Acc;
+                _ -> Acc + 1
+            end
+        end,
+        0,
+        ServerList
+     ).
+
 server(LS) ->
     case gen_tcp:accept(LS) of
         {ok,S} ->
