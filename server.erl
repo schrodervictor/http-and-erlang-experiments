@@ -50,14 +50,18 @@ server(ListenSock) ->
             ok
     end.
 
-loop(S) ->
-    inet:setopts(S,[{active,once}]),
+loop(Socket) ->
+    inet:setopts(Socket,[{active,once}]),
     receive
-        {tcp,S,Data} ->
-            Answer = process(Data), % Not implemented in this example
-            gen_tcp:send(S,Answer),
-            loop(S);
-        {tcp_closed,S} ->
-            io:format("Socket ~w closed [~w]~n",[S,self()]),
+        {http, Socket, Data} ->
+            io:format("Socket ~p~n", [Socket]),
+            io:format("Server ~p got message: ~p~n", [self(), Data]),
+            %Headers = digest(Data),
+            Answer = "Hello World",% process(Data), % Not implemented in this example
+            gen_tcp:send(Socket, "HTTP/1.1 202 Accepted\r\nConnection: close\r\nContent-Type: text/html; charset=UTF-8\r\nCache-Control: no-cache\r\n\r\n"),
+            gen_tcp:send(Socket, Answer),
+            loop(Socket);
+        Msg ->
+            io:format("Server ~p got unknow message: ~p~n", [self(), Msg]),
             ok
     end.
