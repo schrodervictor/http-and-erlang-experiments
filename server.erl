@@ -1,14 +1,20 @@
 -module(server).
 -export([start/2]).
 
-start(Num,LPort) ->
-    case gen_tcp:listen(LPort,[{active, false},{packet,2}]) of
+start(Num, LPort) ->
+    case gen_tcp:listen(LPort,[
+                              % {ip, {127,0,0,1}},
+                               list,
+                               {active, false},
+                               {packet,http}
+                              ]) of
         {ok, ListenSock} ->
-            start_servers(Num,ListenSock),
+            io:format("ListenSock: ~p~n", [ListenSock]),
+            start_servers(Num, ListenSock),
             {ok, Port} = inet:port(ListenSock),
             Port;
-        {error,Reason} ->
-            {error,Reason}
+        {error, Reason} ->
+            {error, Reason}
     end.
 
 start_servers(0,_) ->
