@@ -17,11 +17,15 @@ start(Num, LPort) ->
             {error, Reason}
     end.
 
-start_servers(0,_) ->
-    ok;
-start_servers(Num,LS) ->
-    spawn(?MODULE,server,[LS]),
-    start_servers(Num-1,LS).
+start_servers(Num, ListenSock) ->
+    start_servers(Num, ListenSock, [], 0).
+start_servers(Num, ListenSock, ServerList, Active)
+    when Active >= Num ->
+        start_servers(Num, ListenSock, ServerList, countServers(ServerList));
+start_servers(Num, ListenSock, ServerList, _) ->
+    io:format("Bringing server up~n"),
+    NewPid = spawn(fun() -> server(ListenSock) end),
+    start_servers(Num, ListenSock, [NewPid|ServerList], countServers(ServerList)).
 
 server(LS) ->
     case gen_tcp:accept(LS) of
